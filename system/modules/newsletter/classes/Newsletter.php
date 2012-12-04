@@ -3,10 +3,10 @@
 /**
  * Contao Open Source CMS
  * 
- * Copyright (C) 2005-2013 Leo Feyer
+ * Copyright (C) 2005-2012 Leo Feyer
  * 
  * @package Newsletter
- * @link    https://contao.org
+ * @link    http://contao.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
@@ -21,8 +21,8 @@ namespace Contao;
  * Class Newsletter
  *
  * Provide methods to handle newsletters.
- * @copyright  Leo Feyer 2005-2013
- * @author     Leo Feyer <https://contao.org>
+ * @copyright  Leo Feyer 2005-2012
+ * @author     Leo Feyer <http://contao.org>
  * @package    Newsletter
  */
 class Newsletter extends \Backend
@@ -64,7 +64,6 @@ class Newsletter extends \Backend
 		}
 
 		$arrAttachments = array();
-		$blnAttachmentsFormatError = false;
 
 		// Add attachments
 		if ($objNewsletter->addFile)
@@ -73,25 +72,18 @@ class Newsletter extends \Backend
 
 			if (is_array($files) && !empty($files))
 			{
-				// Check for version 3 format
-				if (!is_numeric($files[0]))
+				foreach ($files as $file)
 				{
-					$blnAttachmentsFormatError = true;
-					\Message::addError($GLOBALS['TL_LANG']['ERR']['version2format']);
-				}
-				else
-				{
-					$objFiles = \FilesModel::findMultipleByIds($files);
-
-					if ($objFiles !== null)
+					// Check for version 3 format
+					if (is_numeric($file))
 					{
-						while ($objFiles->next())
-						{
-							if (is_file(TL_ROOT . '/' . $objFiles->path))
-							{
-								$arrAttachments[] = $objFiles->path;
-							}
-						}
+						$objFile = \FilesModel::findByPk($file);
+						$file = $objFile->path;
+					}
+					
+					if (is_file(TL_ROOT . '/' . $file))
+					{
+						$arrAttachments[] = $file;
 					}
 				}
 			}
@@ -108,7 +100,7 @@ class Newsletter extends \Backend
 		}
 
 		// Send newsletter
-		if (!$blnAttachmentsFormatError && \Input::get('token') != '' && \Input::get('token') == $this->Session->get('tl_newsletter_send'))
+		if (\Input::get('token') != '' && \Input::get('token') == $this->Session->get('tl_newsletter_send'))
 		{
 			$referer = preg_replace('/&(amp;)?(start|mpc|token|recipient|preview)=[^&]*/', '', \Environment::get('request'));
 
@@ -291,22 +283,14 @@ class Newsletter extends \Backend
 </div>
 <div class="clear"></div>
 </div>
-</div>';
-
-		// Do not send the newsletter if there is an attachment format error
-		if (!$blnAttachmentsFormatError)
-		{
-			$return .= '
+</div>
 
 <div class="tl_formbody_submit">
 <div class="tl_submit_container">
 <input type="submit" name="preview" class="tl_submit" accesskey="p" value="'.specialchars($GLOBALS['TL_LANG']['tl_newsletter']['preview']).'">
 <input type="submit" id="send" class="tl_submit" accesskey="s" value="'.specialchars($GLOBALS['TL_LANG']['tl_newsletter']['send'][0]).'" onclick="return confirm(\''. str_replace("'", "\\'", $GLOBALS['TL_LANG']['tl_newsletter']['sendConfirm']) .'\')">
 </div>
-</div>';
-		}
-
-		$return .= '
+</div>
 
 </form>';
 
