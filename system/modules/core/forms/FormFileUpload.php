@@ -2,9 +2,9 @@
 
 /**
  * Contao Open Source CMS
- * 
+ *
  * Copyright (C) 2005-2012 Leo Feyer
- * 
+ *
  * @package Core
  * @link    http://contao.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
@@ -33,6 +33,12 @@ class FormFileUpload extends \Widget implements \uploadable
 	 * @var string
 	 */
 	protected $strTemplate = 'form_widget';
+
+	/**
+	 * Add a for attribute
+	 * @var boolean
+	 */
+	protected $blnForAttribute = true;
 
 
 	/**

@@ -2,9 +2,9 @@
 
 /**
  * Contao Open Source CMS
- * 
+ *
  * Copyright (C) 2005-2012 Leo Feyer
- * 
+ *
  * @package Core
  * @link    http://contao.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
@@ -143,15 +143,15 @@ class FormRadioButton extends \Widget
 
 		foreach ($this->arrOptions as $i=>$arrOption)
 		{
-			$strOptions .= sprintf('<span><input type="radio" name="%s" id="opt_%s" class="radio" value="%s"%s%s%s <label id="lbl_%s" for="opt_%s">%s</label></span> ',
+			$strOptions .= sprintf('<span><label id="lbl_%s" for="opt_%s" class="radio"><input type="radio" name="%s" id="opt_%s" class="radio" value="%s"%s%s%s %s</label></span> ',
+									$this->strId.'_'.$i,
+									$this->strId.'_'.$i,
 									$this->strName,
 									$this->strId.'_'.$i,
 									$arrOption['value'],
 									$this->isChecked($arrOption),
 									$this->getAttributes(),
 									$this->strTagEnding,
-									$this->strId.'_'.$i,
-									$this->strId.'_'.$i,
 									$arrOption['label']);
 		}
 
