@@ -2,9 +2,9 @@
 
 /**
  * Contao Open Source CMS
- * 
+ *
  * Copyright (C) 2005-2013 Leo Feyer
- * 
+ *
  * @package Newsletter
  * @link    https://contao.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
@@ -159,6 +159,30 @@ class ModuleNewsletterReader extends \Module
 			}
 		}
 
+
+		// Add titleimage
+		if ($objNewsletter->titleimage)
+		{
+
+			// Check for version 3 format
+			if (is_numeric($objNewsletter->titleimage))
+			{
+				$objImage = \FilesModel::findByPk($objNewsletter->titleimage);
+				$titleimg = $objImage->path;
+			}else{
+				$titleimg = $objNewsletter->titleimage;
+			}
+
+			if (!is_file(TL_ROOT . '/' . $titleimg))
+			{
+				$titleimg = "";
+			}
+		}
+		else
+		{
+			$titleimg = "";
+		}
+
 		// Support plain text newsletters (thanks to Hagen Klemp)
 		if ($objNewsletter->sendText)
 		{
@@ -174,11 +198,47 @@ class ModuleNewsletterReader extends \Module
 		$strContent = $this->replaceInsertTags($strContent);
 		$strContent = \String::parseSimpleTokens($strContent, array());
 
+		if ($objNewsletter->teasertext)
+		{
+			$strTeaser = $this->replaceInsertTags($objNewsletter->teasertext);
+			$strTeaser = \String::parseSimpleTokens($strTeaser, array());
+		}
+		else
+		{
+			$strTeaser = "";
+		}
+
+		if ($objNewsletter->issuenumber)
+		{
+			$strIssue = $this->replaceInsertTags($objNewsletter->issuenumber);
+			$strIssue = \String::parseSimpleTokens($strIssue, array());
+		}
+		else
+		{
+			$strIssue = "";
+		}
+
+
 		// Encode e-mail addresses
 		$strContent = \String::encodeEmail($strContent);
+
+		$strTeaser = \String::encodeEmail($strTeaser);
 
 		$this->Template->content = $strContent;
 		$this->Template->subject = $objNewsletter->subject;
 		$this->Template->enclosure = $arrEnclosures;
+
+		$this->Template->titleimg = $titleimg;
+		$this->Template->issue = $strIssue;
+
+
+		if ($objNewsletter->sendText)
+		{
+			$this->Template->teaser = "";
+		}
+		else
+		{
+			$this->Template->teaser = $strTeaser;
+		}
 	}
 }
