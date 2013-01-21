@@ -2,9 +2,9 @@
 
 /**
  * Contao Open Source CMS
- * 
+ *
  * Copyright (C) 2005-2013 Leo Feyer
- * 
+ *
  * @package Newsletter
  * @link    https://contao.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
@@ -97,14 +97,53 @@ class Newsletter extends \Backend
 			}
 		}
 
+
+		// Add titleimage
+		if ($objNewsletter->titleimage)
+		{
+
+			// Check for version 3 format
+			if (is_numeric($objNewsletter->titleimage))
+			{
+				$objImage = \FilesModel::findByPk($objNewsletter->titleimage);
+				$titleimg = $objImage->path;
+			}else{
+				\Message::addError($GLOBALS['TL_LANG']['ERR']['version2format']);
+				$titleimg = $objNewsletter->titleimage;
+			}
+
+			if (!is_file(TL_ROOT . '/' . $titleimg))
+			{
+				$titleimg = "";
+			}
+		}
+
 		// Replace insert tags
 		$html = $this->replaceInsertTags($objNewsletter->content);
 		$text = $this->replaceInsertTags($objNewsletter->text);
+
+		if($objNewsletter->issuenumber)
+		{
+			$issue = $this->replaceInsertTags($objNewsletter->issuenumber);
+		}else{
+			$issue = "";
+		};
+
+
+		if($objNewsletter->teasertext)
+		{
+			$teaser = $this->replaceInsertTags($objNewsletter->teasertext);
+		}else{
+			$teaser = "";
+		};
+
+
 
 		// Convert relative URLs
 		if ($objNewsletter->externalImages)
 		{
 			$html = $this->convertRelativeUrls($html);
+			$teaser = $this->convertRelativeUrls($teaser);
 		}
 
 		// Send newsletter
@@ -126,7 +165,7 @@ class Newsletter extends \Backend
 
 				// Send
 				$objEmail = $this->generateEmailObject($objNewsletter, $arrAttachments);
-				$this->sendNewsletter($objEmail, $objNewsletter, $arrRecipient, $text, $html);
+				$this->sendNewsletter($objEmail, $objNewsletter, $arrRecipient, $text, $html, $issue, $teaser, $titleimg);
 
 				// Redirect
 				\Message::addConfirmation(sprintf($GLOBALS['TL_LANG']['tl_newsletter']['confirm'], 1));
@@ -174,7 +213,7 @@ class Newsletter extends \Backend
 				while ($objRecipients->next())
 				{
 					$objEmail = $this->generateEmailObject($objNewsletter, $arrAttachments);
-					$this->sendNewsletter($objEmail, $objNewsletter, $objRecipients->row(), $text, $html);
+					$this->sendNewsletter($objEmail, $objNewsletter, $objRecipients->row(), $text, $html, $issue, $teaser, $titleimg);
 
 					echo 'Sending newsletter to <strong>' . $objRecipients->email . '</strong><br>';
 				}
@@ -360,7 +399,7 @@ class Newsletter extends \Backend
 	 * @param string
 	 * @return string
 	 */
-	protected function sendNewsletter(\Email $objEmail, \Database\Result $objNewsletter, $arrRecipient, $text, $html, $css=null)
+	protected function sendNewsletter(\Email $objEmail, \Database\Result $objNewsletter, $arrRecipient, $text, $html, $issue, $teaser, $titleimg, $css=null)
 	{
 		// Prepare the text content
 		$objEmail->text = \String::parseSimpleTokens($text, $arrRecipient);
@@ -382,6 +421,13 @@ class Newsletter extends \Backend
 			$objTemplate->body = \String::parseSimpleTokens($html, $arrRecipient);
 			$objTemplate->charset = $GLOBALS['TL_CONFIG']['characterSet'];
 			$objTemplate->css = $css; // Backwards compatibility
+
+			$objTemplate->teaser = \String::parseSimpleTokens($teaser, $arrRecipient);
+			$objTemplate->titleimg = $titleimg;
+			$objTemplate->issue = $issue;
+
+			$objTemplate->email = $arrRecipient['email'];
+			$objTemplate->alias = $objNewsletter->alias;
 
 			// Parse template
 			$objEmail->html = $objTemplate->parse();
