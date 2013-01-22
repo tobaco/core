@@ -119,7 +119,10 @@ class Newsletter extends \Backend
 		}
 
 		// Replace insert tags
-		$html = $this->replaceInsertTags($objNewsletter->content);
+
+		$strBase = \Environment::get('base');
+		$html = $this->replaceInsertTags(str_ireplace('{{env::request}}', '', $objNewsletter->content));
+		$html = str_ireplace($strBase.'#', '#', $html);
 		$text = $this->replaceInsertTags($objNewsletter->text);
 
 		if($objNewsletter->issuenumber)
@@ -132,7 +135,8 @@ class Newsletter extends \Backend
 
 		if($objNewsletter->teasertext)
 		{
-			$teaser = $this->replaceInsertTags($objNewsletter->teasertext);
+			$teaser = $this->replaceInsertTags(str_ireplace('{{env::request}}', '', $objNewsletter->teasertext));
+			$teaser = str_ireplace($strBase.'#', '#', $teaser);
 		}else{
 			$teaser = "";
 		};
